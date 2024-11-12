@@ -1,7 +1,9 @@
 export default function Home() {
+  // não ta pronto não, perai
+  console.log('teste')
   return (
     <div>
-      <p>Teste</p>
+      <p>Home</p>
     </div>
   )
 }
