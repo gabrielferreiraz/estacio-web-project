@@ -1,5 +1,7 @@
 import { Roboto } from 'next/font/google'
+
 import './globals.css'
+import Providers from './providers'
 
 export const metadata = {
   title: '',
@@ -15,7 +17,9 @@ const robotoFont = Roboto({
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-br">
-      <body className={robotoFont.className}>{children}</body>
+      <body className={robotoFont.className}>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   )
 }

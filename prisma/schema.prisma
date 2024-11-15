@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enum para os status de aluno: Calouro ou Veterano
+enum StatusAluno {
+  CALOURO
+  VETERANO
+}
+
+// Enum para o turno: Manhã, Tarde ou Noite
+enum Turno {
+  MANHA
+  TARDE
+  NOITE
+}
+
+// Modelo Painel: representa as categorias e turnos dos painéis
+model Painel {
+  id          String      @id @default(uuid())
+  statusAluno StatusAluno // 'Calouro' ou 'Veterano', usando enum
+  turno       Turno // 'Manhã', 'Tarde' ou 'Noite', usando enum
+  cards       Card[] // Relação um-para-muitos com o modelo Card
+}
+
+// Modelo Card: representa cada card do painel e contém informações do curso
+model Card {
+  id          String       @id @default(uuid())
+  painelId    String // Campo de referência para Painel
+  curso       String // Nome do curso no card
+  disciplinas Disciplina[] // Relação um-para-muitos com o modelo Disciplina
+
+  // Define a relação com Painel
+  painel Painel @relation(fields: [painelId], references: [id])
+}
+
+// Modelo Disciplina: representa as disciplinas de cada card
+model Disciplina {
+  id         String @id @default(uuid())
+  cardId     String // Campo de referência para Card
+  disciplina String // Nome da disciplina
+  professor  String // Nome do professor
+  sala       String // Sala de aula
+
+  // Define a relação com Card
+  card Card @relation(fields: [cardId], references: [id])
+}
