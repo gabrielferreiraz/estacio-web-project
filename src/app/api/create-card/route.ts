@@ -6,9 +6,9 @@ import { prisma } from '@/libs/prisma'
 
 // Mapeamento para Turno
 const turnoMap: { [key: string]: Turno } = {
-  Manhã: Turno.MANHA,
-  Tarde: Turno.TARDE,
-  Noite: Turno.NOITE,
+  MANHA: Turno.MANHA,
+  TARDE: Turno.TARDE,
+  NOITE: Turno.NOITE,
 }
 
 // Mapeamento para StatusAluno
@@ -48,113 +48,108 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const hasCard = await prisma.painel.findFirst({
+    const hasPainel = await prisma.painel.findFirst({
       where: {
-        turno: formatedTurno,
         statusAluno: formatedStatusAluno,
-        cards: {
-          some: {
-            curso: req.curso,
-          },
-        },
-      },
-      select: {
-        cards: {
-          include: {
-            disciplinas: true,
-          },
-        },
+        turno: formatedTurno,
       },
     })
 
-    if (hasCard) {
-      const getCardHas = await prisma.card.findFirst({
-        where: {
-          curso: req.curso,
-        },
-      })
-
-      if (!getCardHas) {
-        return NextResponse.json({ message: 'Erro no servidor' }, { status: 500 })
-      }
-
-      await prisma.card.update({
-        where: {
-          id: getCardHas.id,
-        },
+    if (!hasPainel) {
+      await prisma.painel.create({
         data: {
-          disciplinas: {
+          turno: formatedTurno,
+          statusAluno: formatedStatusAluno,
+          cards: {
             create: {
-              disciplina: req.disciplina,
-              professor: req.professor,
-              sala: req.sala,
-            },
-          },
-        },
-      })
-      // Criar uma nova disciplina associada ao primeiro card encontrado
-      // const primeiroCard = hasCard.cards[0] // Seleciona o primeiro card
-      // const createDisciplina = await prisma.disciplina.create({
-      //   data: {
-      //     disciplina: req.disciplina,
-      //     professor: req.professor,
-      //     sala: req.sala,
-      //     cardId: primeiroCard.id, // Associa a nova disciplina ao card encontrado
-      //   },
-      // })
-
-      return NextResponse.json({ message: 'Disciplina criada' }, { status: 200 })
-    }
-
-    const getTurno = await prisma.painel.findFirst({
-      where: {
-        statusAluno: formatedStatusAluno,
-        turno: formatedTurno,
-      },
-    })
-
-    if (!getTurno) {
-      return NextResponse.json({ message: 'Erro no servidor' }, { status: 500 })
-    }
-
-    // const createCard = await prisma.card.create({
-    //   data: {
-    //     curso: req.curso,
-    //     disciplinas: {
-    //       create: {
-    //         disciplina: req.disciplina,
-    //         professor: req.professor,
-    //         sala: req.sala,
-    //       },
-    //     },
-    //   },
-    //   where: {
-
-    //   }
-    // })
-
-    // Criar um novo painel, card, e disciplina se nenhum registro foi encontrado
-    await prisma.painel.update({
-      where: {
-        id: getTurno.id,
-      },
-      data: {
-        cards: {
-          create: {
-            curso: req.curso,
-            disciplinas: {
-              create: {
-                disciplina: req.disciplina,
-                professor: req.professor,
-                sala: req.sala,
+              curso: req.curso,
+              disciplinas: {
+                create: {
+                  disciplina: req.disciplina,
+                  professor: req.professor,
+                  sala: req.sala,
+                },
               },
             },
           },
         },
+      })
+
+      return NextResponse.json({ message: 'Painel criada' }, { status: 201 })
+    }
+
+    const hasCard = await prisma.card.findFirst({
+      where: {
+        painelId: hasPainel.id,
+        curso: req.curso,
       },
     })
 
-    return NextResponse.json({ message: 'Painel e card criados com disciplina' }, { status: 200 })
+    if (!hasCard) {
+      await prisma.painel.update({
+        where: {
+          id: hasPainel.id,
+          statusAluno: hasPainel.statusAluno,
+          turno: hasPainel.turno,
+        },
+        data: {
+          cards: {
+            create: {
+              curso: req.curso,
+              disciplinas: {
+                create: {
+                  disciplina: req.disciplina,
+                  professor: req.professor,
+                  sala: req.sala,
+                },
+              },
+            },
+          },
+        },
+      })
+
+      return NextResponse.json({ message: 'Card criado' }, { status: 201 })
+    }
+
+    const hasDiscipline = await prisma.disciplina.findFirst({
+      where: {
+        cardId: hasCard.id,
+        disciplina: req.disciplina,
+      },
+    })
+
+    if (!hasDiscipline) {
+      await prisma.painel.update({
+        where: {
+          id: hasPainel.id,
+          statusAluno: hasPainel.statusAluno,
+          turno: hasPainel.turno,
+        },
+        data: {
+          cards: {
+            update: {
+              where: {
+                id: hasCard.id,
+                curso: hasCard.curso,
+                painelId: hasCard.painelId,
+              },
+              data: {
+                disciplinas: {
+                  create: {
+                    disciplina: req.disciplina,
+                    professor: req.professor,
+                    sala: req.sala,
+                  },
+                },
+              },
+            },
+          },
+        },
+      })
+      return NextResponse.json({ message: 'Disciplina criada' }, { status: 201 })
+    }
+
+    return NextResponse.json({ message: 'Disciplina já criada' }, { status: 400 })
   } catch {
     return NextResponse.json({ message: 'Erro no servidor' }, { status: 500 })
   }

@@ -13,8 +13,6 @@ interface EnvioFormProps {
 }
 
 export default function Login() {
-  console.log('renderizando')
-
   const [showPassword, setShowPassword] = useState(false)
 
   const { handleSubmit, register } = useForm({

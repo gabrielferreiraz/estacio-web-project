@@ -6,11 +6,12 @@ interface Disciplina {
   sala: string
 }
 export interface CardProps {
+  id: string
   disciplinas: Disciplina[]
   curso: string
 }
 
-interface Painel {
+export interface PainelProps {
   id: string
   statusAluno: string
   turno: string
@@ -18,5 +19,5 @@ interface Painel {
 }
 
 export interface PainelEditorProps {
-  painel: Painel[]
+  painel: PainelProps[]
 }
