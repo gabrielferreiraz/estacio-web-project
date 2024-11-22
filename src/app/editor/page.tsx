@@ -137,7 +137,7 @@ export default function Editor() {
           <Image alt="empty" src="/img/undraw_void.png" width={300} height={300} />
         </div>
         <span className="mt-4 px-16 text-center text-4xl font-semibold text-white">
-          Sem cursos e disciplinas cadastradads
+          Sem cursos e disciplinas cadastrados
         </span>
         <div className="absolute right-0 flex flex-col pr-4">
           <div className="mb-4 flex flex-col">
